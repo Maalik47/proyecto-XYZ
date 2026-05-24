@@ -41,7 +41,7 @@ class TeamViewSet(viewsets.ModelViewSet):
             return Response({'error': 'El usuario ya es miembro del equipo'}, status=status.HTTP_400_BAD_REQUEST)
         
         membership = team.members.filter(user=request.user).first()
-        if membership and membership.role in ['owner', 'admin', 'professor']:
+        if request.user.role == 'admin' or (membership and (membership.role in ['owner', 'admin'] or request.user.can_manage_team_members)):
             TeamMember.objects.create(team=team, user_id=user_id, role=role)
             return Response({'message': 'Miembro agregado'}, status=status.HTTP_201_CREATED)
         return Response({'error': 'No tienes permisos'}, status=status.HTTP_403_FORBIDDEN)
@@ -52,7 +52,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         user_id = request.data.get('user_id')
         
         membership = team.members.filter(user=request.user).first()
-        if membership and membership.role in ['owner', 'admin']:
+        if request.user.role == 'admin' or (membership and (membership.role in ['owner', 'admin'] or request.user.can_manage_team_members)):
             TeamMember.objects.filter(team=team, user_id=user_id).delete()
             return Response({'message': 'Miembro eliminado'}, status=status.HTTP_204_NO_CONTENT)
         return Response({'error': 'No tienes permisos'}, status=status.HTTP_403_FORBIDDEN)

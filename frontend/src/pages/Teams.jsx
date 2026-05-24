@@ -23,6 +23,7 @@ const Teams = () => {
     const [settingsForm, setSettingsForm] = useState({ allow_uploads: true, allowed_extensions: [], max_file_size: 10 });
     const [memberSearch, setMemberSearch] = useState('');
     const [memberResults, setMemberResults] = useState([]);
+    const [selectedMemberId, setSelectedMemberId] = useState(null);
     const [showModal, setShowModal] = useState(null);
     const [confirmAction, setConfirmAction] = useState(null);
     const [menuPosition, setMenuPosition] = useState(null);
@@ -64,7 +65,7 @@ const Teams = () => {
     const selectMember = (user) => {
         setMemberSearch(user.username || user.email);
         setMemberResults([]);
-        document.getElementById('addMemberInput').value = user.id.toString();
+        setSelectedMemberId(user.id);
     };
 
     const fetchAllUsers = async () => {
@@ -203,15 +204,14 @@ const Teams = () => {
 
     const handleAddMember = async (e) => {
         e.preventDefault();
-        const input = document.getElementById('addMemberInput');
-        const userId = input.value;
+        const userId = selectedMemberId;
         
         if (!userId) return;
         
         try {
-            await teamService.addMember(selectedTeam.id, parseInt(userId), 'member');
+            await teamService.addMember(selectedTeam.id, userId, 'member');
             setMemberSearch('');
-            input.value = '';
+            setSelectedMemberId(null);
             fetchTeamDetails(selectedTeam.id);
             setShowModal({ type: 'success', message: 'Miembro agregado exitosamente' });
         } catch (error) {
@@ -406,11 +406,11 @@ const Teams = () => {
             )}
 
             {selectedTeam && (
-                <div className="modal-overlay" onClick={() => { setSelectedTeam(null); setActiveTab('members'); }}>
+                <div className="modal-overlay" onClick={() => { setSelectedTeam(null); setActiveTab('members'); setSelectedMemberId(null); }}>
                     <div className="modal-content team-detail-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h2>{selectedTeam.name}</h2>
-                            <button className="modal-close" onClick={() => { setSelectedTeam(null); setActiveTab('members'); }}>×</button>
+                            <button className="modal-close" onClick={() => { setSelectedTeam(null); setActiveTab('members'); setSelectedMemberId(null); }}>×</button>
                         </div>
                         {selectedTeam.image && (
                             <img src={selectedTeam.image} alt={selectedTeam.name} className="team-modal-image" />
